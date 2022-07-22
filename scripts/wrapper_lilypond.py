@@ -106,6 +106,8 @@ class ConfigAll(Config):
     pdf = ParamCreator.create_new_file(help_string="pdf to produce")
     ly = ParamCreator.create_existing_file(help_string="lilypond input")
 
+    include = ParamCreator.create_list_str(help_string="lilypond include directories")
+
     output = ParamCreator.create_str(help_string="folder for outputs")
 
 
@@ -126,6 +128,8 @@ def run() -> None:
     if ConfigAll.do_pdf:
         args.append('--pdf')
     args.append('--output=' + ConfigAll.output)
+    for include in ConfigAll.include:
+        args.append('--include=' + os.path.abspath(include))
     args.append(ConfigAll.ly)
     try:
         # to make sure that lilypond shuts up...

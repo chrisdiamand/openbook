@@ -146,6 +146,8 @@ TONALITYTransposePitch=tonalityTransposePitch(TONALITY)
 %% This reduces the size of the pdf by a lot
 \pointAndClickOff
 
+\include "lilyjazz.ily"
+
 %% chord related matters
 myChordDefinitions={
 	<c ees ges bes des' fes' aes'>-\markup \super {7alt}

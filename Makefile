@@ -48,6 +48,10 @@ COMMON:=include/common.ly.mako
 # wrappers
 LILYPOND_WRAPPER:=python -m scripts.wrapper_lilypond
 LILYPOND_WRAPPER_DEP:=scripts/wrapper_lilypond.py
+LILYPOND_INCLUDE_DIRS:=lilyjazz/otf,lilyjazz/stylesheet
+# Lilypond does not provide a way to dump implicit transitive dependencies
+# (like gcc -M), so do our best to list them explicitly here.
+LILYPOND_INCLUDE_DEP:=lilyjazz/otf/* lilyjazz/stylesheet/* lilyjazz/svg/*
 MAKO_WRAPPER:=python -m scripts.wrapper_mako
 MAKO_WRAPPER_DEP:=scripts/wrapper_mako.py
 MAKO_DEPS_WRAPPER:=scripts/mako_deps.py
@@ -290,10 +294,10 @@ $(FILES_MIDI): %.midi: %.stamp
 	$(info doing [$@])
 
 # this is the real rule
-$(FILES_STAMP): $(OUT_DIR)/%.stamp: $(OUT_DIR)/%.ly $(LILYPOND_WRAPPER_DEP)
+$(FILES_STAMP): $(OUT_DIR)/%.stamp: $(OUT_DIR)/%.ly $(LILYPOND_WRAPPER_DEP) $(LILYPOND_INCLUDE_DEP)
 	$(info doing [$@])
 	$(Q)mkdir -p $(dir $@)
-	$(Q)$(LILYPOND_WRAPPER) run --stop_on_output False --ps $(dir $@)$(basename $(notdir $@)).ps --pdf $(dir $@)$(basename $(notdir $@)).pdf --output $(dir $@)$(basename $(notdir $@)) --ly $<
+	$(Q)$(LILYPOND_WRAPPER) run --stop_on_output False --ps $(dir $@)$(basename $(notdir $@)).ps --pdf $(dir $@)$(basename $(notdir $@)).pdf --include $(LILYPOND_INCLUDE_DIRS) --output $(dir $@)$(basename $(notdir $@)) --ly $<
 	$(Q)touch $@
 
 $(OUT_DIR)/%.0.pdf: %.ly.mako $(MAKO_WRAPPER_DEP)
@@ -338,9 +342,9 @@ TMPL_LY_$(1):=$$(OUTPUT)/$(1).ly
 TMPL_PS_$(1):=$$(OUTPUT)/$(1).ps
 TMPL_PDF_$(1):=$$(OUTPUT)/$(1).pdf
 TMPL_PREREQ_$(1):=$(subst ./,,$(shell find src/$(1) -type f -and -name "*.mako"))
-$$(TMPL_PDF_$(1)): $$(TMPL_LY_$(1)) $$(LILYPOND_WRAPPER_DEP)
+$$(TMPL_PDF_$(1)): $$(TMPL_LY_$(1)) $$(LILYPOND_WRAPPER_DEP) $(LILYPOND_INCLUDE_DEP)
 	$$(info doing [$$@])
-	$$(Q)$$(LILYPOND_WRAPPER) run --ps $$(TMPL_PS_$(1)) --pdf $$(TMPL_PDF_$(1)) --output $$(OUTPUT) --ly $$<
+	$$(Q)$$(LILYPOND_WRAPPER) run --ps $$(TMPL_PS_$(1)) --pdf $$(TMPL_PDF_$(1)) --include $(LILYPOND_INCLUDE_DIRS) --output $$(OUTPUT) --ly $$<
 $$(TMPL_LY_$(1)): $$(TMPL_PREREQ_$(1)) $$(MAKO_WRAPPER_DEP) $$(COMMON)
 	$$(info doing [$$@])
 	$$(Q)mkdir -p $$(dir $$@)
